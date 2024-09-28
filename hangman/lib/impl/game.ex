@@ -1,6 +1,7 @@
 defmodule Hangman.Impl.Game do
   alias Hangman.Type
 
+  ## defstruct
   @type t :: %__MODULE__{
           game_state: Type.state(),
           letters: list(String.t()),
