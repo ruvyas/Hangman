@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        ref: develop # Checkout the 'develop' branch
+        ref: main # Checkout the 'main' branch
 
     # Step 2: Read the VERSION file to get the current version
     - name: Get current version
@@ -68,6 +68,6 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         commit-message: "Bump version to ${{ env.NEXT_VERSION }}"
         branch: bump-version-${{ env.NEXT_VERSION }}
-        base: develop
+        base: main
         title: "Bump version to ${{ env.NEXT_VERSION }}"
         body: "This PR bumps the version to ${{ env.NEXT_VERSION }}."
