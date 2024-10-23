@@ -1,0 +1,73 @@
+name: Dev Complete Workflow
+
+# This will allow the workflow to be triggered manually
+on:
+  workflow_dispatch:
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: develop # Checkout the 'develop' branch
+
+    # Step 2: Read the VERSION file to get the current version
+    - name: Get current version
+      id: get_version
+      run: |
+        VERSION=$(cat VERSION)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    # Step 3: Create a release branch based on the VERSION
+    - name: Create release branch
+      run: |
+        git config --global push.autoSetupRemote true
+        release_branch="release/v${{ env.VERSION }}"
+        git checkout -b "$release_branch"
+        git push --set-upstream origin "$release_branch"
+
+    # Step 4: Bump the version
+    - name: Bump version
+      id: bump_version
+      run: |
+        version="${{ env.VERSION }}"
+        year=$(date +%y)
+
+        if [[ $version =~ ([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+          major="${BASH_REMATCH[1]}"
+          minor="${BASH_REMATCH[2]}"
+
+          # Check if the year in the version needs updating
+          if [[ "$major" != "$year" ]]; then
+            year=$((major + 1))
+          fi
+
+          next_version="$year.$((minor + 1)).0"
+          echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
+        else
+          echo "No version match"
+          exit 1
+        fi
+
+    # Step 5: Update the VERSION file with the new version
+    - name: Update VERSION file
+      run: |
+        echo "${{ env.NEXT_VERSION }}" > VERSION
+        git add VERSION
+        git commit -m "Bump version to ${{ env.NEXT_VERSION }}"
+        git push
+
+    # Step 6: Create a pull request
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Bump version to ${{ env.NEXT_VERSION }}"
+        branch: bump-version-${{ env.NEXT_VERSION }}
+        base: develop
+        title: "Bump version to ${{ env.NEXT_VERSION }}"
+        body: "This PR bumps the version to ${{ env.NEXT_VERSION }}."
