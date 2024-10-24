@@ -24,8 +24,7 @@ jobs:
     - name: Get current version
       id: get_version
       run: |
-        VERSION=$(cat VERSION)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "VERSION=$(cat VERSION)" | tee -a $GITHUB_ENV | tee -a $GITHUB_OUTPUT
 
     # Step 3: Create a release branch based on the VERSION
     - name: Create release branch
