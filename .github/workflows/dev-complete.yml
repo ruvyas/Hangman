@@ -3,6 +3,11 @@ name: Dev Complete Workflow
 # This will allow the workflow to be triggered manually
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Optional version to use for the release'
+        required: false
+        default: ''
 
 jobs:
   create-release:
@@ -11,7 +16,7 @@ jobs:
     steps:
     # Step 1: Checkout the repository
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: main # Checkout the 'main' branch
 
@@ -36,24 +41,28 @@ jobs:
     - name: Bump version
       id: bump_version
       run: |
-        version="${{ env.VERSION }}"
-        year=$(date +%y)
-
-        if [[ $version =~ ([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
-          major="${BASH_REMATCH[1]}"
-          minor="${BASH_REMATCH[2]}"
-
-          # Check if the year in the version needs updating
-          if [[ "$major" != "$year" ]]; then
-            year=$((major + 1))
-          fi
-
-          next_version="$year.$((minor + 1)).0"
-          echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
-          echo "NEXT_VERSION=$next_version"
+        if [ -n "${{ github.event.inputs.version }}" ]; then
+          echo "Skipping version bump as a version was provided."
+          echo "NEXT_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
         else
-          echo "No version match"
-          exit 1
+          version="${{ env.VERSION }}"
+          year=$(date +%y)
+
+          if [[ $version =~ ([0-9]+)\.([0-9]+)\.[0-9]+ ]]; then
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+
+            # Check if the year in the version needs updating
+            if [[ "$major" != "$year" ]]; then
+              year=$((major + 1))
+            fi
+
+            next_version="$year.$((minor + 1)).0"
+            echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
+          else
+            echo "No version match, exiting"
+            exit 1
+          fi
         fi
 
     # Step 5: Update the VERSION file with the new version
