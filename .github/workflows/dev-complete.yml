@@ -26,6 +26,8 @@ jobs:
     - name: Create release branch
       run: |
         git config --global push.autoSetupRemote true
+        git config --global user.name 'Github Actions'
+        git config --global user.email 'gh-actions@bot.noreply.github.com'
         release_branch="release/v${{ env.VERSION }}"
         git checkout -b "$release_branch"
         git push --set-upstream origin "$release_branch"
@@ -54,20 +56,18 @@ jobs:
         fi
 
     # Step 5: Update the VERSION file with the new version
-    - name: Update VERSION file
+    - name: Update VERSION file and push new branch using GitHub CLI
       run: |
+        gh auth login --with-token < ${{ secrets.GITHUB_TOKEN }}
+        next_version_branch="bump-version-${{ env.NEXT_VERSION }}"
+        git checkout -b $next_version_branch
         echo "${{ env.NEXT_VERSION }}" > VERSION
         git add VERSION
         git commit -m "Bump version to ${{ env.NEXT_VERSION }}"
-        git push
+        git push --set-upstream origin $next_version_branch
 
-    # Step 6: Create a pull request
-    - name: Create pull request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "Bump version to ${{ env.NEXT_VERSION }}"
-        branch: bump-version-${{ env.NEXT_VERSION }}
-        base: main
-        title: "Bump version to ${{ env.NEXT_VERSION }}"
-        body: "This PR bumps the version to ${{ env.NEXT_VERSION }}."
+  # Step 7: Create a pull request for the version bump using GitHub CLI
+    - name: Create pull request using GitHub CLI
+      run: |
+        gh auth login --with-token < ${{ secrets.GITHUB_TOKEN }}
+        gh pr create --base develop --head bump-version-${{ env.NEXT_VERSION }} --title "Bump version to ${{ env.NEXT_VERSION }}" --body "This PR bumps the version to ${{ env.NEXT_VERSION }}."
