@@ -69,6 +69,6 @@ jobs:
   # Step 7: Create a pull request for the version bump using GitHub CLI
     - name: Create pull request using GitHub CLI
       run: |
-        gh pr create --base develop --head bump-version-${{ env.NEXT_VERSION }} --title "Bump version to ${{ env.NEXT_VERSION }}" --body "This PR bumps the version to ${{ env.NEXT_VERSION }}."
+        gh pr create --base main --head bump-version-${{ env.NEXT_VERSION }} --title "Bump version to ${{ env.NEXT_VERSION }}" --body "This PR bumps the version to ${{ env.NEXT_VERSION }}."
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
