@@ -4,7 +4,7 @@ name: Dev Complete Workflow
 on:
   workflow_dispatch:
     inputs:
-      version:
+      next_release_version:
         description: 'Optional version to use for the release'
         required: false
         default: ''
@@ -41,9 +41,9 @@ jobs:
     - name: Bump version
       id: bump_version
       run: |
-        if [ -n "${{ github.event.inputs.version }}" ]; then
+        if [ -n "${{ github.event.inputs.next_release_version }}" ]; then
           echo "Skipping version bump as a version was provided."
-          echo "NEXT_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "NEXT_VERSION=${{ github.event.inputs.next_release_version }}" >> $GITHUB_ENV
         else
           version="${{ env.VERSION }}"
           year=$(date +%y)
